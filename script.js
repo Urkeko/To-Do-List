@@ -1,127 +1,95 @@
-const formulariox = document.querySelector("#formulario")
-
-formulariox.addEventListener("submit", validarFormu)
-
 document.addEventListener("DOMContentLoaded", cargarTareas); 
 
-function validarFormu(evento){
-    evento.preventDefault();
-    const tarea = document.querySelector("#tarea").value;
-    
-    if (tarea ==="")return;
-    
+const formulario = document.querySelector("#formulario");
+formulario.addEventListener("submit", validarFormu);
 
+function validarFormu(evento) {
+    evento.preventDefault(); 
+
+    const tareaInput = document.querySelector("#tarea");
+    const tarea = tareaInput.value.trim(); 
+
+    if (tarea === "") return; 
+
+    agregarTareaDOM(tarea, false);
+
+    guardarTareas();
+
+    tareaInput.value = "";
+}
+
+function agregarTareaDOM(tareaTexto, completada) {
     const lista = document.getElementById("lista");
-    
     const nuevaTarea = document.createElement("li");
 
     const contenedorTarea = document.createElement("div");
     contenedorTarea.classList.add("contenedor-tarea");
 
-
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.classList.add("checkbox-personalizado")
+    checkbox.checked = completada;
+    checkbox.classList.add("checkbox-personalizado");
 
-    const tareaTexto = document.createElement("span");
-    tareaTexto.classList.add("texto-tarea");
-    tareaTexto.textContent = tarea;
-
+    const tareaSpan = document.createElement("span");
+    tareaSpan.classList.add("texto-tarea");
+    tareaSpan.textContent = tareaTexto;
 
     const eliminarBtn = document.createElement("button");
-    eliminarBtn.innerHTML = '<span class="material-icons">delete</span>'
-    eliminarBtn.classList.add("eliminar-btn")
+    eliminarBtn.innerHTML = '<span class="material-icons">delete</span>';
+    eliminarBtn.classList.add("eliminar-btn");
 
-    contenedorTarea.appendChild(checkbox);
-    contenedorTarea.appendChild(tareaTexto);
-    contenedorTarea.appendChild(eliminarBtn);
-
-    // Agrega el contenedor de la tarea al elemento li
-    nuevaTarea.appendChild(contenedorTarea);
-
-
-
-    eliminarBtn.addEventListener("click", ()=>{
+    eliminarBtn.addEventListener("click", () => {
         lista.removeChild(nuevaTarea);
         guardarTareas();
     });
-    
-    
 
-    checkbox.addEventListener("change",()=>{
-        if (checkbox.checked){
+    checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
             nuevaTarea.classList.add("tachado");
-
-        }else {
+        } else {
             nuevaTarea.classList.remove("tachado");
         }
         guardarTareas();
-    })
+    });
 
+    if (completada) {
+        nuevaTarea.classList.add("tachado");
+    }
 
-    
+    contenedorTarea.appendChild(checkbox);
+    contenedorTarea.appendChild(tareaSpan);
+    contenedorTarea.appendChild(eliminarBtn);
+
+    nuevaTarea.appendChild(contenedorTarea);
+
     lista.appendChild(nuevaTarea);
-
-    document.querySelector("#tarea").value ="";
-    guardarTareas();   
-    
 }
 
-function guardarTareas(){
+function guardarTareas() {
     const lista = document.getElementById("lista").children;
     const tareas = [];
 
-    for (let i = 0; i < lista.length; i++){
-        const tareaTexto = lista [i].childNodes[1].textContent;
-        const completada = lista[i].childNodes[0].checked;
+    for (let i = 0; i < lista.length; i++) {
+        const tareaTexto = lista[i].querySelector(".texto-tarea").textContent;
+        const completada = lista[i].querySelector(".checkbox-personalizado").checked;
 
         tareas.push({
-            texto:tareaTexto,
+            texto: tareaTexto,
             completada: completada
         });
     }
+
     localStorage.setItem("tareas", JSON.stringify(tareas));
 }
 
-function cargarTareas(){
+function cargarTareas() {
     const tareasGuardadas = localStorage.getItem("tareas");
-    if (tareasGuardadas){
-        const tareas = JSON.parse (tareasGuardadas);
-        tareas.forEach((tarea)=>{
-            const lista = document.getElementById("lista");
-            const nuevaTarea = document.createElement("li");
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.checked = tarea.completada;
 
-            const eliminarBtn = document.createElement("button");
-            eliminarBtn.innerHTML = '<span class="material-icons">delete</span>'
-            eliminarBtn.classList.add("eliminar-btn");
+    if (tareasGuardadas) {
+        const tareas = JSON.parse(tareasGuardadas);
 
-            eliminarBtn.addEventListener("click",()=>{
-                lista.removeChild(nuevaTarea);
-                guardarTareas();
-            });
-
-            nuevaTarea.appendChild(checkbox);
-            nuevaTarea.appendChild(document.createTextNode(tarea.texto));
-            nuevaTarea.appendChild (eliminarBtn);
-
-            checkbox.addEventListener("change", ()=>{
-                if (checkbox.checked){
-                    nuevaTarea.classList.add("tachada");
-                }else {
-                    nuevaTarea.classList.remove("tachado");
-                }
-                guardarTareas();
-            });
-            if (tarea.completada){
-                nuevaTarea.classList.add("tachado");
-            }
-
-            lista.appendChild(nuevaTarea);
+        tareas.forEach((tarea) => {
+            agregarTareaDOM(tarea.texto, tarea.completada);
         });
     }
-    
-    
 }
